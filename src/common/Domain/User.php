@@ -139,11 +139,18 @@ class User
             throw new \Library\Exception\BadRequestException(\PhalApi\T('邮箱已注册'));// 抛出客户端错误 T标签翻译
         }
 
-        $insert_data = $data;
+        $insert_data = [
+            'user_name' => $data['user_name'],
+            'password' => $data['password'],
+            'email' => $data['email'],
+            'real_name' => $data['real_name'],
+            'birth_time' => substr($data['birth_time'], 0, 10),
+            'sex' => $data['sex'],
+            'reg_time' => NOW_TIME,
+            'status' => 1,
+        ];
         $insert_data['a_pwd'] = \Common\encrypt($insert_data['password']);
         $insert_data['password'] = \Common\pwd_hash($insert_data['password']);
-        $insert_data['reg_time'] = NOW_TIME;
-        $insert_data['status'] = 1;
         $insert_id = $user_model->insert($insert_data);
 
         if (!$insert_id) {

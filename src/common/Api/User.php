@@ -24,7 +24,7 @@ class User extends Base
             'password' => ['name' => 'password', 'type' => 'string', 'require' => true, 'min' => 6, 'desc' => '密码'],
             'email' => ['name' => 'email', 'type' => 'string', 'require' => true, 'regex' => "/^([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3}(\\.[a-z]{2})?)$/i", 'desc' => '邮箱'],
             'real_name' => ['name' => 'real_name', 'type' => 'string', 'require' => true, 'min' => 1, 'desc' => '姓名'],
-            'birth_time' => ['name' => 'birth', 'type' => 'date', 'format' => 'timestamp', 'require' => true, 'desc' => '生日'],
+            'birth_time' => ['name' => 'birth', 'type' => 'int', 'require' => true, 'desc' => '生日'],
             'sex' => ['name' => 'sex', 'type' => 'enum', 'range' => ['1', '2'], 'require' => true, 'desc' => '性别'],
         ];
         $rules['doInfo'] = [
