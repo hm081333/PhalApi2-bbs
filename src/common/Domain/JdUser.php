@@ -8,6 +8,13 @@
 
 namespace Common\Domain;
 
+use EasyWeChat\Kernel\Exceptions\InvalidArgumentException;
+use EasyWeChat\Kernel\Exceptions\InvalidConfigException;
+use Library\Exception\BadRequestException;
+use Library\Exception\Exception;
+use Library\Exception\InternalServerErrorException;
+use function PhalApi\T;
+
 /**
  * 京东账号 领域层
  * JdUser
@@ -19,7 +26,7 @@ class JdUser
     use Common;
 
     /**
-     * @return \Common\Domain\JdSign
+     * @return JdSign
      */
     public static function Domain_JdSign()
     {
@@ -40,18 +47,19 @@ class JdUser
     /**
      * 添加、修改京东账号
      * @param array $data
-     * @throws \Library\Exception\BadRequestException
-     * @throws \Library\Exception\InternalServerErrorException
+     * @throws BadRequestException
+     * @throws InternalServerErrorException
+     * @throws Exception
      */
     public static function doInfo($data)
     {
         if (empty($data['pt_key']) || empty($data['pt_pin']) || empty($data['pt_token'])) {
-            throw new \Library\Exception\BadRequestException(\PhalApi\T('非法请求'));
+            throw new BadRequestException(T('非法请求'));
         }
         // 该账号的id
         $jd_user_id = $data['id'];
         // 当前登录会员信息
-        $user = \Common\Domain\User::getCurrentUser(true);
+        $user = User::getCurrentUser(true);
         $modelJdUser = self::getModel();
         // 获取京东用户信息
         $jd_user_info = self::Domain_JdSign()->getJDUserInfo($data);
@@ -62,41 +70,38 @@ class JdUser
             'pt_key' => $data['pt_key'],
             'pt_pin' => $data['pt_pin'],
             'pt_token' => $data['pt_token'],
+            'status' => 1,
+            'refresh_time' => NOW_TIME,
         ];
         if ($jd_user_id) {
             // 修改
-            self::DI()->response->setMsg(\PhalApi\T('修改成功'));
+            self::DI()->response->setMsg(T('修改成功'));
 
             $check = $modelJdUser->getInfo(['id' => $jd_user_id, 'user_id' => $user['id']], 'id');
             if (!$check) {
-                throw new \Library\Exception\BadRequestException(\PhalApi\T('不存在该账号信息'));
+                throw new BadRequestException(T('不存在该账号信息'));
             }
 
-            $update_data = array_merge($data, [
-                'refresh_time' => NOW_TIME,
-            ]);
-            $insert_rs = $modelJdUser->update($jd_user_id, $update_data);
-            if ($insert_rs === false) {
-                throw new \Library\Exception\InternalServerErrorException(\PhalApi\T('添加失败'));
+            $update_rs = $modelJdUser->update($jd_user_id, $data);
+            if ($update_rs === false) {
+                throw new InternalServerErrorException(T('添加失败'));
             }
         } else {
             // 添加
-            self::DI()->response->setMsg(\PhalApi\T('添加成功'));
+            self::DI()->response->setMsg(T('添加成功'));
 
             $check = $modelJdUser->getInfo(['jd_user_name' => $data['jd_user_name']], 'id');
             if ($check) {
-                throw new \Library\Exception\BadRequestException(\PhalApi\T('该账号已经绑定过了'));
+                throw new BadRequestException(T('该账号已经绑定过了'));
             }
 
             $insert_data = array_merge($data, [
                 'user_id' => $user['id'],
-                'status' => 1,
                 'add_time' => NOW_TIME,
-                'refresh_time' => NOW_TIME,
             ]);
             $insert_rs = $modelJdUser->insert($insert_data);
             if ($insert_rs === false) {
-                throw new \Library\Exception\InternalServerErrorException(\PhalApi\T('添加失败'));
+                throw new InternalServerErrorException(T('添加失败'));
             }
         }
 
@@ -118,10 +123,10 @@ class JdUser
      * 登录状态过期
      * @param array $user_cookie
      * @return bool
-     * @throws \EasyWeChat\Kernel\Exceptions\InvalidArgumentException
-     * @throws \EasyWeChat\Kernel\Exceptions\InvalidConfigException
-     * @throws \Library\Exception\BadRequestException
-     * @throws \Library\Exception\InternalServerErrorException
+     * @throws InvalidArgumentException
+     * @throws InvalidConfigException
+     * @throws BadRequestException
+     * @throws InternalServerErrorException
      */
     public static function loginStatusExpired(array $user_cookie)
     {
@@ -135,7 +140,7 @@ class JdUser
         if (!$info) return false;
         $res = self::changeStatus($info['id'], $status);
         if ($res === false) return false;
-        /** @var $wechat \Common\Domain\WeChatPublicPlatform */
+        /** @var $wechat WeChatPublicPlatform */
         $wechat = self::getDomain('WeChatPublicPlatform');
         $wechat->sendJDLoginStatusExpiredWarn($info);
         return true;

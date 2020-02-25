@@ -65,8 +65,9 @@ class JdSign
     /**
      * 测试 钩子
      */
-    public static function test()
+    public function test()
     {
+        die;
     }
 
     /**
@@ -970,7 +971,7 @@ class JdSign
         $data = DI()->curl->setCookie($this->user_cookie)->setHeader([
             'Referer' => "https://shop.m.jd.com/?shopId={$shopId}",
         ])->json_get($url);
-        DI()->curl->unsetHeader('Referer');
+        // DI()->curl->unsetHeader('Referer');
 
         if ($data['iRet'] != 0) throw new Exception($data['errMsg']);
 
@@ -1123,7 +1124,7 @@ class JdSign
         $data = DI()->curl->setCookie($this->user_cookie)->setHeader([
             'Referer' => "https://shop.m.jd.com/?shopId={$skuId}",
         ])->json_get($url);
-        DI()->curl->unsetHeader('Referer');
+        // DI()->curl->unsetHeader('Referer');
 
         if ($data['iRet'] != 0) throw new Exception($data['errMsg']);
 
@@ -2228,7 +2229,7 @@ class JdSign
 
         DI()->curl->setHeader(['Referer' => 'https://m.jr.jd.com/member/coinlottery/index.html?channel=01-qd-190306']);
         $res = $this->jrRequest($url);
-        DI()->curl->unsetHeader('Referer');
+        // DI()->curl->unsetHeader('Referer');
         DI()->logger->debug("金币抽奖", $res);
 
         // if ($res['code'] != '1000') {
@@ -2300,7 +2301,7 @@ class JdSign
                 'clientVersion' => '11.0',
             ]),
         ]);
-        DI()->curl->unsetHeader('Referer');
+        // DI()->curl->unsetHeader('Referer');
 
         if ($res['resultCode'] != '00000') {
             DI()->logger->error("每日赚京豆 - 连续签到信息|{$res['resultMsg']}", $res);
@@ -2351,7 +2352,7 @@ class JdSign
                 'clientVersion' => '11.0',
             ]),
         ]);
-        DI()->curl->unsetHeader('Referer');
+        // DI()->curl->unsetHeader('Referer');
 
         if ($res['resultCode'] != '00000') {
             DI()->logger->error("每日赚京豆 - 签到|{$res['resultMsg']}", $res);
@@ -2418,7 +2419,7 @@ class JdSign
         ])->setHeader([
             'Referer' => 'https://home.m.jd.com/myJd/newhome.action',
         ])->json_get($url);
-        DI()->curl->unsetHeader('Referer');
+        // DI()->curl->unsetHeader('Referer');
         if ($result['retcode'] != 0 || empty($result['data'])) {
             DI()->logger->error('获取京东会员信息错误', $result);
             throw new Exception(T('未知错误'));

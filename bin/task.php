@@ -43,7 +43,8 @@ try {
                     die();
                     break;
                 case 'test':
-                    \Common\Domain\JdSign::test();
+                    $domain_JdSign = new \Common\Domain\JdSign();
+                    $domain_JdSign->test();
                     die('测试');
                     break;
                 case 'bean':// 签到领京豆
