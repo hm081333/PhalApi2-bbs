@@ -371,9 +371,7 @@ class JdSign
      */
     public function getSignStatus($jd_user = false)
     {
-        if (empty($jd_user)) {
-            throw new BadRequestException(T('非法参数'));
-        }
+        if (empty($jd_user)) throw new BadRequestException(T('非法参数'));
         $sign_list = $this->Model_JdSign()->getListByWhere(['jd_user_id' => $jd_user['id'], 'status' => 1], 'sign_key,return_data');
         if (empty($sign_list)) {
             throw new BadRequestException(T('该用户不存在开启中的签到'));

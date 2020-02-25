@@ -82,7 +82,7 @@ class TieBa
 
     /**
      * CURL整合--返回数组
-     * @param string $url
+     * @param string     $url
      * @param bool|array $post
      * @return mixed
      * @throws InternalServerErrorException
@@ -354,15 +354,13 @@ class TieBa
 
     /**
      * 获取签到状态
-     * @param bool $openid
+     * @param array $user
      * @return array
      * @throws BadRequestException
      */
-    public function getSignStatus($openid = false)
+    public function getSignStatus($user = [])
     {
-        if (empty($openid)) throw new BadRequestException(T('缺少openid'));
-        $user = $this->Model_User()->getInfo(['open_id=?' => $openid], 'id,user_name');
-        if (!$user) throw new BadRequestException(T('没找到该用户'));
+        if (empty($user)) throw new BadRequestException(T('非法参数'));
         $h = date('G', NOW_TIME);
         if ($h < 11) {
             $greeting = '早上好！';
@@ -375,11 +373,11 @@ class TieBa
         }
         $day_time = DateHelper::getDayTime();
         $tieba_model = $this->Model_TieBa();
-        $total = $tieba_model->getCount(['user_id=?' => $user['id']]);
+        $total = $tieba_model->getCount(['user_id=?' => $user['user_id']]);
         if ($total <= 0) throw new BadRequestException(T('该用户没有贴吧账号'));
-        $success_count = $tieba_model->getCount(['user_id=?' => $user['id'], 'no=?' => 0, 'status=?' => 0, 'latest>=?' => $day_time['begin'], 'latest<=?' => $day_time['end']]);//签到成功
-        $fail_count = $tieba_model->getCount(['user_id=?' => $user['id'], 'no=?' => 0, 'status>?' => 0, 'latest>=?' => $day_time['begin'], 'latest<=?' => $day_time['end']]);//签到失败
-        $no_count = $tieba_model->getCount(['user_id=?' => $user['id'], 'no>?' => 0]);//忽略签到
+        $success_count = $tieba_model->getCount(['user_id=?' => $user['user_id'], 'no=?' => 0, 'status=?' => 0, 'latest>=?' => $day_time['begin'], 'latest<=?' => $day_time['end']]);//签到成功
+        $fail_count = $tieba_model->getCount(['user_id=?' => $user['user_id'], 'no=?' => 0, 'status>?' => 0, 'latest>=?' => $day_time['begin'], 'latest<=?' => $day_time['end']]);//签到失败
+        $no_count = $tieba_model->getCount(['user_id=?' => $user['user_id'], 'no>?' => 0]);//忽略签到
         $result = [
             'user_name' => $user['user_name'],
             'greeting' => $greeting,

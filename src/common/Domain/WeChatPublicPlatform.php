@@ -172,22 +172,48 @@ class WeChatPublicPlatform
     }
 
     /**
+     * 公众号发送贴吧签到日志
+     */
+    public function sendTieBaSignDetailByCron()
+    {
+        $baidu_ids = $this->Model_User()->queryRows("SELECT
+            --    `baiduid`.`id`,
+            `baiduid`.`user_id`,
+            `user`.`id`,
+            `user`.`open_id`,
+            `user`.`user_name`
+        FROM
+            `ly_baiduid` AS `baiduid`
+        LEFT JOIN `ly_user` AS `user` ON `baiduid`.`user_id` = `user`.`id`
+        WHERE
+            `user`.`open_id` IS NOT NULL
+            AND `user`.`open_id` != ''");
+        foreach ($baidu_ids as $user) {
+            try {
+                $this->sendTiebaSignDetail($user);
+            } catch (Exception $e) {
+                DI()->logger->error($e->getMessage());
+            }
+        }
+    }
+
+    /**
      * 发送贴吧签到详情
-     * @param bool $openid
+     * @param array $user
      * @return array|Collection|object|ResponseInterface|string
-     * @throws InvalidArgumentException
-     * @throws InvalidConfigException
      * @throws BadRequestException
      * @throws InternalServerErrorException
+     * @throws InvalidArgumentException
+     * @throws InvalidConfigException
      */
-    private function sendTiebaSignDetail($openid = false)
+    private function sendTiebaSignDetail($user = [])
     {
-        if (empty($openid)) throw new BadRequestException(T('缺少openid'));
+        if (empty($user) || empty($user['open_id']) || empty($user['id'])) throw new BadRequestException(T('非法参数'));
 
-        $info = $this->Domain_TieBa()->getSignStatus($openid);
+        $info = $this->Domain_TieBa()->getSignStatus($user);
         if ($info == false) throw new InternalServerErrorException(T('获取状态失败'));
         $result = DI()->wechat->template_message->send([
-            'touser' => $openid,
+            'touser' => $user['open_id'],
             'template_id' => 'Ogvc_rROWerSHvfgo1IOJIL103bso0H3jLYEAwTuKKg',
             'url' => 'http://bbs2.lyihe2.tk/tieba',
             // 'miniprogram' => [
@@ -225,22 +251,6 @@ class WeChatPublicPlatform
         DI()->logger->debug('微信推送结果', $result);
 
         return $result;
-    }
-
-    /**
-     * 公众号发送贴吧签到日志
-     */
-    public function sendTieBaSignDetailByCron()
-    {
-        $user_model = $this->Model_User();
-        $users = $user_model->getListByWhere(['open_id IS NOT ?' => null], 'open_id');
-        foreach ($users as $user) {
-            try {
-                $this->sendTiebaSignDetail($user['open_id']);
-            } catch (Exception $e) {
-                DI()->logger->error($e->getMessage());
-            }
-        }
     }
 
     /**
@@ -304,7 +314,7 @@ class WeChatPublicPlatform
      */
     public function sendJDSignDetailByCron()
     {
-        $users = $this->Model_User()->queryRows('SELECT
+        $users = $this->Model_User()->queryRows("SELECT
             `jd_user`.`id`,
             `jd_user`.`user_id`,
             `user`.`open_id`,
@@ -314,7 +324,8 @@ class WeChatPublicPlatform
             LEFT JOIN `ly_user` AS `user` ON `jd_user`.`user_id` = `user`.`id` 
         WHERE
             `jd_user`.`status` = 1 
-            AND `user`.`open_id` IS NOT NULL;');
+            AND `user`.`open_id` IS NOT NULL
+            AND `user`.`open_id` != ''");
         foreach ($users as $user) {
             try {
                 $this->sendJdSignDetail($user);
@@ -335,9 +346,8 @@ class WeChatPublicPlatform
      */
     private function sendJdSignDetail($user = [])
     {
-        if (empty($user) || empty($user['open_id']) || empty($user['id'])) {
-            throw new BadRequestException(T('非法参数'));
-        }
+        if (empty($user) || empty($user['open_id']) || empty($user['id'])) throw new BadRequestException(T('非法参数'));
+
         $info = $this->Domain_JdSign()->getSignStatus($user);
         if ($info == false) {
             throw new InternalServerErrorException(T('获取推送信息失败'));
