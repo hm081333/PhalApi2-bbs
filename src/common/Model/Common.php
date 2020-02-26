@@ -8,7 +8,8 @@
 
 namespace Common\Model;
 
-use PhalApi\PhalApi;
+use Library\Exception\InternalServerErrorException;
+use function PhalApi\T;
 
 trait Common
 {
@@ -22,7 +23,7 @@ trait Common
      * 根据主键值返回对应的表名，注意分表的情况
      *
      * 默认表名为：[表前缀] + 全部小写的匹配表名
-     * @throws \PhalApi_Exception_InternalServerError
+     * @throws InternalServerErrorException
      */
     public function getName($id = null)
     {
@@ -39,7 +40,7 @@ trait Common
      *
      * @param string $table 表名/分表名
      * @return string 主键名
-     * @throws \PhalApi_Exception_InternalServerError
+     * @throws InternalServerErrorException
      */
     protected function getTablePrefix($table)
     {
@@ -51,13 +52,13 @@ trait Common
     }
 
     /**
-     * @throws \PhalApi_Exception_InternalServerError
+     * @throws InternalServerErrorException
      */
     protected function loadTablePrefixs()
     {
         $tables = self::DI()->config->get('dbs.tables');
         if (empty($tables)) {
-            throw new \PhalApi_Exception_InternalServerError(T('dbs.tables should not be empty'));
+            throw new InternalServerErrorException(T('dbs.tables should not be empty'));
         }
 
         foreach ($tables as $tableName => $tableConfig) {
