@@ -18,11 +18,13 @@ try {
             switch ($type) {
                 case 'sign':// 签到
                     $di->logger->info('执行定时:贴吧签到');
-                    \Common\Domain\TieBa::doSignAll();// 签到所有贴吧
+                    $Domain_TieBa = new \Common\Domain\TieBa();
+                    $Domain_TieBa->doSignAll();// 签到所有贴吧
                     break;
                 case 'retry':// 重试
                     $di->logger->info('执行定时:贴吧重试签到');
-                    \Common\Domain\TieBa::doRetryAll();// 重试所有出错贴吧
+                    $Domain_TieBa = new \Common\Domain\TieBa();
+                    $Domain_TieBa->doRetryAll();// 重试所有出错贴吧
                     break;
                 case 'send_info':
                     $di->logger->info('推送签到详情信息');

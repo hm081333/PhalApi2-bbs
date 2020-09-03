@@ -570,6 +570,7 @@ class TieBa
             $update_data['fid'] = $fid;
         }
 
+        $time = time();
         $error_code = 0;
         $error_msg = '';
         //三种签到方式依次尝试
